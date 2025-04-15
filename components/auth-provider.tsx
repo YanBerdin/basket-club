@@ -31,8 +31,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const sessionFetched = useRef(false)
   // Utiliser useRef pour éviter les mises à jour d'état pendant le démontage du composant
   const isMounted = useRef(true)
+<<<<<<< HEAD
   // Utiliser useRef pour stocker la référence à l'abonnement
   const subscriptionRef = useRef(null)
+=======
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
 
   // Fonction pour effacer la session en cas d'erreur de token
   const clearSession = useCallback(() => {
@@ -40,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setUser(null)
     userRef.current = null
+<<<<<<< HEAD
 
     // Vérifier si nous sommes dans un environnement navigateur
     if (typeof window === "undefined") {
@@ -47,6 +51,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
+=======
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
     // Nettoyer le stockage local
     try {
       // Supprimer tous les éléments liés à Supabase
@@ -128,6 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [clearSession])
 
+<<<<<<< HEAD
   // Fonction pour nettoyer l'abonnement
   const cleanupSubscription = useCallback(() => {
     if (subscriptionRef.current) {
@@ -180,6 +187,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [cleanupSubscription, loading])
 
+=======
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
   useEffect(() => {
     // Initialiser l'état d'authentification une seule fois
     const initializeAuth = async () => {
@@ -211,9 +220,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (isMounted.current) {
           setLoading(false)
         }
+<<<<<<< HEAD
 
         // Configurer l'écouteur d'authentification après l'initialisation
         setupAuthListener()
+=======
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
       } catch (error) {
         console.error("Erreur lors de l'initialisation de l'authentification:", error)
 
@@ -231,12 +243,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth()
 
+<<<<<<< HEAD
     // Nettoyer lors du démontage
     return () => {
       isMounted.current = false
       cleanupSubscription()
     }
   }, [clearSession, setupAuthListener, cleanupSubscription])
+=======
+    // Configurer l'écouteur d'événements d'authentification
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("État d'authentification changé:", _event)
+
+      const sessionUser = session?.user || null
+
+      // Comparer uniquement les propriétés pertinentes de l'utilisateur
+      const isSameUser = userRef.current?.id === sessionUser?.id && userRef.current?.email === sessionUser?.email
+
+      if (!isSameUser) {
+        userRef.current = sessionUser
+        if (isMounted.current) {
+          setUser(sessionUser)
+        }
+      }
+
+      // Marquer le chargement comme terminé si nécessaire
+      if (isMounted.current && loading) {
+        setLoading(false)
+      }
+    })
+
+    // Nettoyer lors du démontage
+    return () => {
+      isMounted.current = false
+      subscription.unsubscribe()
+    }
+  }, [clearSession, loading])
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
 
   // Réinitialiser isMounted lors du montage
   useEffect(() => {

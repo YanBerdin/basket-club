@@ -9,18 +9,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { signOut } from "@/lib/auth"
 import { toast } from "@/components/ui/use-toast"
 import { FileText, Loader2 } from "lucide-react"
+<<<<<<< HEAD
 import { getUserProfile } from "@/lib/database"
 import type { Profile } from "@/types/database.types"
+=======
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
 
 export default function MemberAreaPage() {
   const { user, loading, clearSession } = useAuth()
   const router = useRouter()
+<<<<<<< HEAD
   const [userProfile, setUserProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
 
   // Utiliser useRef pour suivre si les données utilisateur ont déjà été définies
   const profileFetched = useRef(false)
+=======
+  const [userData, setUserData] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Utiliser useRef pour suivre si les données utilisateur ont déjà été définies
+  const userDataInitialized = useRef(false)
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
   // Utiliser useRef pour suivre si une redirection a déjà été tentée
   const redirectAttempted = useRef(false)
   // Utiliser useRef pour suivre si le composant est monté
@@ -46,6 +57,7 @@ export default function MemberAreaPage() {
       return
     }
 
+<<<<<<< HEAD
     // Charger le profil de l'utilisateur seulement si l'utilisateur existe et que le profil n'a pas encore été récupéré
     if (!loading && user && !profileFetched.current) {
       console.log("Utilisateur connecté, récupération du profil:", user.id)
@@ -103,12 +115,35 @@ export default function MemberAreaPage() {
     if (isMounted.current) {
       setIsLoading(true)
       setIsSigningOut(true)
+=======
+    // Charger les données de l'utilisateur seulement si l'utilisateur existe et que les données n'ont pas encore été initialisées
+    if (!loading && user && !userDataInitialized.current) {
+      console.log("Utilisateur connecté, initialisation des données:", user.id)
+      userDataInitialized.current = true
+
+      // Définir les données utilisateur une seule fois
+      if (isMounted.current) {
+        setUserData({
+          firstName: user.user_metadata?.first_name || "Membre",
+          lastName: user.user_metadata?.last_name || "",
+          role: user.user_metadata?.role || "member",
+          email: user.email,
+        })
+      }
+    }
+  }, [user, loading, router])
+
+  const handleSignOut = async () => {
+    if (isMounted.current) {
+      setIsLoading(true)
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
     }
 
     try {
       // Nettoyer d'abord la session dans le contexte d'authentification
       clearSession()
 
+<<<<<<< HEAD
       // Appeler la fonction de déconnexion avec un timeout
       const signOutPromise = signOut()
 
@@ -127,18 +162,35 @@ export default function MemberAreaPage() {
         })
       }
 
+=======
+      // Appeler la fonction de déconnexion
+      await signOut()
+
+      toast({
+        title: "Déconnexion réussie",
+        description: "Vous avez été déconnecté avec succès.",
+      })
+
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
       // Rediriger vers la page d'accueil
       redirectAttempted.current = true
       router.push("/")
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error)
 
+<<<<<<< HEAD
       if (isMounted.current) {
         toast({
           title: "Déconnexion effectuée",
           description: "Vous avez été déconnecté.",
         })
       }
+=======
+      toast({
+        title: "Déconnexion effectuée",
+        description: "Vous avez été déconnecté.",
+      })
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
 
       // Rediriger quand même
       redirectAttempted.current = true
@@ -146,13 +198,20 @@ export default function MemberAreaPage() {
     } finally {
       if (isMounted.current) {
         setIsLoading(false)
+<<<<<<< HEAD
         setIsSigningOut(false)
+=======
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
       }
     }
   }
 
   // Afficher un état de chargement pendant la vérification de l'authentification
+<<<<<<< HEAD
   if (loading || !userProfile) {
+=======
+  if (loading || !userData) {
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
     return (
       <main className="py-12 px-4">
         <div className="max-w-7xl mx-auto">
@@ -168,15 +227,23 @@ export default function MemberAreaPage() {
     )
   }
 
+<<<<<<< HEAD
   // Déterminer le nom d'affichage
   const displayName = userProfile.first_name || user?.email?.split("@")[0] || "Membre"
 
+=======
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
   return (
     <main className="py-12 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+<<<<<<< HEAD
           <h1 className="text-4xl font-bold">Bienvenue, {displayName}</h1>
           <Button variant="outline" onClick={handleSignOut} disabled={isLoading || isSigningOut}>
+=======
+          <h1 className="text-4xl font-bold">Bienvenue, {userData.firstName}</h1>
+          <Button variant="outline" onClick={handleSignOut} disabled={isLoading}>
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Déconnexion...
@@ -276,6 +343,7 @@ export default function MemberAreaPage() {
                     <div className="space-y-2">
                       <div className="grid grid-cols-3 gap-4">
                         <div className="font-medium">Nom</div>
+<<<<<<< HEAD
                         <div className="col-span-2">{userProfile.last_name || "Non renseigné"}</div>
                       </div>
                       <div className="grid grid-cols-3 gap-4">
@@ -285,13 +353,30 @@ export default function MemberAreaPage() {
                       <div className="grid grid-cols-3 gap-4">
                         <div className="font-medium">Email</div>
                         <div className="col-span-2">{user?.email}</div>
+=======
+                        <div className="col-span-2">{userData.lastName}</div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="font-medium">Prénom</div>
+                        <div className="col-span-2">{userData.firstName}</div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="font-medium">Email</div>
+                        <div className="col-span-2">{userData.email}</div>
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
                       </div>
                       <div className="grid grid-cols-3 gap-4">
                         <div className="font-medium">Rôle</div>
                         <div className="col-span-2">
+<<<<<<< HEAD
                           {userProfile.role === "admin"
                             ? "Administrateur"
                             : userProfile.role === "coach"
+=======
+                          {userData.role === "admin"
+                            ? "Administrateur"
+                            : userData.role === "coach"
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
                               ? "Entraîneur"
                               : "Membre"}
                         </div>

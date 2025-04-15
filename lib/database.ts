@@ -1,4 +1,5 @@
 import { supabase } from "./supabase"
+<<<<<<< HEAD
 import type { Event, News, Team, Match, Media, Profile } from "@/types/database.types"
 
 // Fonction pour vérifier la connexion à Supabase
@@ -109,6 +110,9 @@ export async function inspectProfilesTable() {
     throw error
   }
 }
+=======
+import type { Event, News, Team, Match, Media } from "@/types/database.types"
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
 
 // Fonctions pour les événements
 export async function getEvents() {

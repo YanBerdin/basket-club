@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { createClient } from "@supabase/supabase-js"
 import { isRefreshTokenError } from "./supabase"
 
@@ -9,6 +10,9 @@ const supabase = createClient(
 function isBrowser() {
   return typeof window !== "undefined"
 }
+=======
+import { supabase, isRefreshTokenError } from "./supabase"
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
 
 export async function signIn(email: string, password: string) {
   try {
@@ -29,9 +33,13 @@ export async function signIn(email: string, password: string) {
       console.warn("Problème avec le token de rafraîchissement lors de la connexion")
       // Effacer les tokens existants si nécessaire
       try {
+<<<<<<< HEAD
         if (isBrowser()) { // 
           localStorage.removeItem("supabase.auth.token")
         }
+=======
+        localStorage.removeItem("supabase.auth.token")
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
       } catch (e) {
         console.error("Erreur lors de la suppression du token:", e)
       }
@@ -58,6 +66,7 @@ export async function signUp(email: string, password: string, userData: any) {
 }
 
 export async function signOut() {
+<<<<<<< HEAD
   // Vérifier si nous sommes dans un environnement navigateur
   if (typeof window === "undefined") {
     console.log("Déconnexion ignorée (environnement serveur)")
@@ -101,6 +110,42 @@ export async function signOut() {
 
     // Attendre la résolution de la promesse
     await signOutPromise
+=======
+  try {
+    // Vérifier d'abord si une session existe
+    const { data: sessionData } = await supabase.auth.getSession()
+
+    // Si aucune session n'existe, considérer que l'utilisateur est déjà déconnecté
+    if (!sessionData?.session) {
+      console.log("Aucune session active trouvée, l'utilisateur est déjà déconnecté")
+      cleanupLocalStorage()
+      return true
+    }
+
+    // Utiliser une approche plus défensive pour la déconnexion
+    try {
+      const { error } = await supabase.auth.signOut({
+        scope: "local", // Utiliser 'local' pour déconnecter uniquement l'appareil actuel
+      })
+
+      if (error) {
+        console.error("Erreur de déconnexion:", error)
+        // Même en cas d'erreur, essayer de nettoyer le stockage local
+        cleanupLocalStorage()
+        // Ne pas propager l'erreur pour permettre à l'utilisateur de continuer
+        return true
+      }
+    } catch (signOutError) {
+      console.error("Exception lors de la déconnexion:", signOutError)
+      // Même en cas d'erreur, essayer de nettoyer le stockage local
+      cleanupLocalStorage()
+      // Ne pas propager l'erreur pour permettre à l'utilisateur de continuer
+      return true
+    }
+
+    // Nettoyer le stockage local après la déconnexion
+    cleanupLocalStorage()
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
 
     return true
   } catch (error) {
@@ -115,12 +160,15 @@ export async function signOut() {
 
 // Fonction utilitaire pour nettoyer le stockage local
 function cleanupLocalStorage() {
+<<<<<<< HEAD
   // Vérifier si nous sommes dans un environnement navigateur
   if (typeof window === "undefined") {
     console.log("Nettoyage du stockage local ignoré (environnement serveur)")
     return
   }
 
+=======
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
   try {
     // Supprimer tous les éléments liés à Supabase
     const keysToRemove = []

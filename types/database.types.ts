@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Types pour les tables Supabase
 
 export type Profile = {
@@ -70,6 +71,10 @@ export type Match = {
 
 // Assurons-nous que les types correspondent exactement aux tables Supabase
 /*
+=======
+// Assurons-nous que les types correspondent exactement aux tables Supabase
+
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
 export type User = {
   id: string
   email: string
@@ -137,4 +142,7 @@ export type Match = {
   score_away?: number
   created_at?: string
 }
+<<<<<<< HEAD
 */
+=======
+>>>>>>> 7372b4576f08d50320a89a3f58eb14cbbfec481c
