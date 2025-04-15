@@ -31,7 +31,7 @@ const supabaseOptions = {
     storageKey: "supabase.auth.token",
     storage: isLocalStorageAvailable()
       ? {
-          getItem: (key) => {
+          getItem: (key: string) => {
             try {
               return localStorage.getItem(key)
             } catch (error) {
@@ -39,14 +39,14 @@ const supabaseOptions = {
               return null
             }
           },
-          setItem: (key, value) => {
+          setItem: (key: string, value: string) => {
             try {
               localStorage.setItem(key, value)
             } catch (error) {
               console.error("Error setting item in localStorage:", error)
             }
           },
-          removeItem: (key) => {
+          removeItem: (key: string) => {
             try {
               localStorage.removeItem(key)
             } catch (error) {
@@ -58,7 +58,7 @@ const supabaseOptions = {
   },
   global: {
     // Augmenter les timeouts pour les environnements avec une connexion lente
-    fetch: (...args) => {
+    fetch: (...args: [RequestInfo | URL, RequestInit?]) => {
       return fetch(...args)
     },
   },
