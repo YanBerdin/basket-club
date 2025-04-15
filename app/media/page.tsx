@@ -49,7 +49,7 @@ export default function MediaPage() {
         image: "/placeholder.svg?height=300&width=400",
       },
       {
-        id: 6,
+        id: 7,
         title: "Match Seniors Masculins vs Auxonne",
         date: "5 février 2025",
         image: "/placeholder.svg?height=300&width=400",
@@ -159,17 +159,17 @@ export default function MediaPage() {
     },
   ]
 
-  const [selectedImage, setSelectedImage] = useState(null)
+  const [selectedImage, setSelectedImage] = useState<{ id: number; title: string; date: string; image: string } | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [currentGallery, setCurrentGallery] = useState([])
+  const [currentGallery, setCurrentGallery] = useState<{ id: number; title: string; date: string; image: string }[]>([])
 
-  const openGallery = (images, index) => {
+  const openGallery = (images: { id: number; title: string; date: string; image: string }[], index: number) => {
     setCurrentGallery(images)
     setCurrentIndex(index)
     setSelectedImage(images[index])
   }
 
-  const navigateGallery = (direction) => {
+  const navigateGallery = (direction: "next" | "prev") => {
     const newIndex =
       direction === "next"
         ? (currentIndex + 1) % currentGallery.length

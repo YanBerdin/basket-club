@@ -30,8 +30,8 @@ const formatEvents = (events: Event[]) => {
 }
 
 // Composants pour les différentes vues
-const EventAgendaItem = ({ event }) => {
-  const { resource } = event
+const EventAgendaItem = ({ event }: { event: any }) => {
+  const resource = event.resource
   return (
     <div className="p-2 hover:bg-muted rounded-md transition-colors">
       <div className="font-medium">{event.title}</div>
@@ -47,7 +47,7 @@ const EventAgendaItem = ({ event }) => {
 
 export default function CalendarPage() {
   const [events, setEvents] = useState<Event[]>([])
-  const [view, setView] = useState("month")
+  const [view, setView] = useState<"month" | "week" | "day" | "agenda">("month")
   const [date, setDate] = useState(new Date())
   const [category, setCategory] = useState("all")
   const [loading, setLoading] = useState(true)
@@ -114,7 +114,7 @@ export default function CalendarPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select value={view} onValueChange={setView}>
+                    <Select value={view} onValueChange={(value) => setView(value as "month" | "week" | "day" | "agenda")}>
                       <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Vue" />
                       </SelectTrigger>
@@ -141,7 +141,11 @@ export default function CalendarPage() {
                       startAccessor="start"
                       endAccessor="end"
                       view={view}
-                      onView={setView}
+                      onView={(view) => {
+                        if (["month", "week", "day", "agenda"].includes(view)) {
+                          setView(view as "month" | "week" | "day" | "agenda")
+                        }
+                      }}
                       date={date}
                       onNavigate={setDate}
                       style={{ height: "100%" }}
@@ -165,7 +169,7 @@ export default function CalendarPage() {
                         },
                       }}
                       popup
-                      tooltipAccessor={(event) => event.resource.description}
+                      tooltipAccessor={(event: any) => event.resource?.description || ""}
                     />
                   </div>
                 )}

@@ -31,6 +31,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const sessionFetched = useRef(false)
   // Utiliser useRef pour éviter les mises à jour d'état pendant le démontage du composant
   const isMounted = useRef(true)
+  // Utiliser useRef pour stocker la référence à l'abonnement
+  const subscriptionRef = useRef(null)
 
   // Fonction pour effacer la session en cas d'erreur de token
   const clearSession = useCallback(() => {
@@ -38,6 +40,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     setUser(null)
     userRef.current = null
+
+    // Vérifier si nous sommes dans un environnement navigateur
+    if (typeof window === "undefined") {
+      console.log("Nettoyage du stockage local ignoré (environnement serveur)")
+      return
+    }
+
     // Nettoyer le stockage local
     try {
       // Supprimer tous les éléments liés à Supabase
@@ -119,6 +128,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [clearSession])
 
+  // Fonction pour nettoyer l'abonnement
+  const cleanupSubscription = useCallback(() => {
+    if (subscriptionRef.current) {
+      try {
+        subscriptionRef.current.unsubscribe()
+        subscriptionRef.current = null
+      } catch (error) {
+        console.error("Erreur lors du nettoyage de l'abonnement:", error)
+      }
+    }
+  }, [])
+
+  // Configurer l'écouteur d'événements d'authentification
+  const setupAuthListener = useCallback(() => {
+    // Nettoyer l'abonnement existant si nécessaire
+    cleanupSubscription()
+
+    try {
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (!isMounted.current) return
+
+        console.log("État d'authentification changé:", _event)
+
+        const sessionUser = session?.user || null
+
+        // Comparer uniquement les propriétés pertinentes de l'utilisateur
+        const isSameUser = userRef.current?.id === sessionUser?.id && userRef.current?.email === sessionUser?.email
+
+        if (!isSameUser) {
+          userRef.current = sessionUser
+          if (isMounted.current) {
+            setUser(sessionUser)
+          }
+        }
+
+        // Marquer le chargement comme terminé si nécessaire
+        if (isMounted.current && loading) {
+          setLoading(false)
+        }
+      })
+
+      // Stocker la référence à l'abonnement
+      subscriptionRef.current = data.subscription
+    } catch (error) {
+      console.error("Erreur lors de la configuration de l'écouteur d'authentification:", error)
+      // Marquer le chargement comme terminé en cas d'erreur
+      if (isMounted.current) {
+        setLoading(false)
+      }
+    }
+  }, [cleanupSubscription, loading])
+
   useEffect(() => {
     // Initialiser l'état d'authentification une seule fois
     const initializeAuth = async () => {
@@ -150,6 +211,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (isMounted.current) {
           setLoading(false)
         }
+
+        // Configurer l'écouteur d'authentification après l'initialisation
+        setupAuthListener()
       } catch (error) {
         console.error("Erreur lors de l'initialisation de l'authentification:", error)
 
@@ -167,36 +231,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth()
 
-    // Configurer l'écouteur d'événements d'authentification
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("État d'authentification changé:", _event)
-
-      const sessionUser = session?.user || null
-
-      // Comparer uniquement les propriétés pertinentes de l'utilisateur
-      const isSameUser = userRef.current?.id === sessionUser?.id && userRef.current?.email === sessionUser?.email
-
-      if (!isSameUser) {
-        userRef.current = sessionUser
-        if (isMounted.current) {
-          setUser(sessionUser)
-        }
-      }
-
-      // Marquer le chargement comme terminé si nécessaire
-      if (isMounted.current && loading) {
-        setLoading(false)
-      }
-    })
-
     // Nettoyer lors du démontage
     return () => {
       isMounted.current = false
-      subscription.unsubscribe()
+      cleanupSubscription()
     }
-  }, [clearSession, loading])
+  }, [clearSession, setupAuthListener, cleanupSubscription])
 
   // Réinitialiser isMounted lors du montage
   useEffect(() => {

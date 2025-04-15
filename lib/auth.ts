@@ -1,4 +1,14 @@
-import { supabase, isRefreshTokenError } from "./supabase"
+import { createClient } from "@supabase/supabase-js"
+import { isRefreshTokenError } from "./supabase"
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+)
+
+function isBrowser() {
+  return typeof window !== "undefined"
+}
 
 export async function signIn(email: string, password: string) {
   try {
@@ -19,7 +29,9 @@ export async function signIn(email: string, password: string) {
       console.warn("Problème avec le token de rafraîchissement lors de la connexion")
       // Effacer les tokens existants si nécessaire
       try {
-        localStorage.removeItem("supabase.auth.token")
+        if (isBrowser()) { // 
+          localStorage.removeItem("supabase.auth.token")
+        }
       } catch (e) {
         console.error("Erreur lors de la suppression du token:", e)
       }
@@ -46,40 +58,49 @@ export async function signUp(email: string, password: string, userData: any) {
 }
 
 export async function signOut() {
+  // Vérifier si nous sommes dans un environnement navigateur
+  if (typeof window === "undefined") {
+    console.log("Déconnexion ignorée (environnement serveur)")
+    return true
+  }
+
   try {
-    // Vérifier d'abord si une session existe
-    const { data: sessionData } = await supabase.auth.getSession()
-
-    // Si aucune session n'existe, considérer que l'utilisateur est déjà déconnecté
-    if (!sessionData?.session) {
-      console.log("Aucune session active trouvée, l'utilisateur est déjà déconnecté")
-      cleanupLocalStorage()
-      return true
-    }
-
-    // Utiliser une approche plus défensive pour la déconnexion
-    try {
-      const { error } = await supabase.auth.signOut({
-        scope: "local", // Utiliser 'local' pour déconnecter uniquement l'appareil actuel
-      })
-
-      if (error) {
-        console.error("Erreur de déconnexion:", error)
-        // Même en cas d'erreur, essayer de nettoyer le stockage local
-        cleanupLocalStorage()
-        // Ne pas propager l'erreur pour permettre à l'utilisateur de continuer
-        return true
-      }
-    } catch (signOutError) {
-      console.error("Exception lors de la déconnexion:", signOutError)
-      // Même en cas d'erreur, essayer de nettoyer le stockage local
-      cleanupLocalStorage()
-      // Ne pas propager l'erreur pour permettre à l'utilisateur de continuer
-      return true
-    }
-
-    // Nettoyer le stockage local après la déconnexion
+    // Nettoyer d'abord le stockage local pour éviter les problèmes de canal fermé
     cleanupLocalStorage()
+
+    // Vérifier d'abord si une session existe
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+
+    // Si une erreur se produit lors de la récupération de la session ou si aucune session n'existe
+    if (sessionError || !sessionData?.session) {
+      console.log("Aucune session active trouvée ou erreur lors de la récupération de la session")
+      return true
+    }
+
+    // Utiliser une promesse avec timeout pour éviter les problèmes de canal fermé
+    const signOutPromise = new Promise<boolean>((resolve) => {
+      // Définir un timeout pour résoudre la promesse même si la déconnexion échoue
+      const timeoutId = setTimeout(() => {
+        console.log("Timeout de déconnexion atteint, considéré comme réussi")
+        resolve(true)
+      }, 2000) // 2 secondes de timeout
+
+      // Tenter la déconnexion
+      supabase.auth
+        .signOut({ scope: "local" })
+        .then(() => {
+          clearTimeout(timeoutId)
+          resolve(true)
+        })
+        .catch((error) => {
+          console.error("Erreur lors de la déconnexion:", error)
+          clearTimeout(timeoutId)
+          resolve(true) // Résoudre quand même pour permettre à l'utilisateur de continuer
+        })
+    })
+
+    // Attendre la résolution de la promesse
+    await signOutPromise
 
     return true
   } catch (error) {
@@ -94,6 +115,12 @@ export async function signOut() {
 
 // Fonction utilitaire pour nettoyer le stockage local
 function cleanupLocalStorage() {
+  // Vérifier si nous sommes dans un environnement navigateur
+  if (typeof window === "undefined") {
+    console.log("Nettoyage du stockage local ignoré (environnement serveur)")
+    return
+  }
+
   try {
     // Supprimer tous les éléments liés à Supabase
     const keysToRemove = []
